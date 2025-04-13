@@ -4,9 +4,8 @@ import os
 
 from keras import models
 
-def load_and_predict(model_path, data):
-    
-    model= models.load_model(model_path)
+def load_and_predict(model, data):
+
     predictions = model.predict(data)
     return predictions
 
@@ -21,7 +20,8 @@ test_data = test_data['data']
 #model_path=r"D:\mmWave_gesture\data_and_model\model\finally_model\gesture_model_RDI_data_2conv_drop.h5"
 
 model_path = os.path.join(current_path , "model/gesture_model_RDI_data.h5")
-predicted_value = load_and_predict(model_path, test_data)
+load_model=models.load_model(model_path)
+predicted_value = load_and_predict(load_model, test_data)
 
 output=pd.DataFrame(columns=['Predicted','Actual','Right or False','Predicted Value'])
 
