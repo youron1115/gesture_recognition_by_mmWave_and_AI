@@ -34,6 +34,10 @@ class Distiller(tf.keras.Model):#
         self.student = student
         self.teacher = teacher
         self.temperature = temperature
+        """
+        1.temperature越大，softmax輸出之對各類別分布越緩和(對負標籤的關注較多)
+        2.student參數較少時無法學到所有teacher的知識，temperature可以較小
+        """
         self.alpha = alpha
         
         self.student_loss_fn = losses.SparseCategoricalCrossentropy()#evaluating student loss by common loss function
@@ -50,30 +54,24 @@ class Distiller(tf.keras.Model):#
         #分類模型最後的softmax層輸出之probability作*soft-target(特徵映射)
         
         # 前向傳播
-        teacher_pred = self.teacher(x, training=False)
-        with tf.GradientTape() as tape:
-            student_pred = self.student(x, training=True)
+        teacher_pred = self.teacher(x, training=False)#即x輸入給teacher使之輸出(predict)
+        with tf.GradientTape() as tape:#記錄梯度
+            student_pred = self.student(x, training=True)#即x輸入給student使之輸出(predict)
 
             # student 對真實 label 的 loss
-            student_loss = self.student_loss_fn(y_true, student_pred)
+            student_loss = self.student_loss_fn(y_true, student_pred)#計算student對真實label的loss
 
-            """
-            1.temperature越大，softmax輸出之對各類別分布越緩和(對負標籤的關注較多)
-            2.student參數較少時無法學到所有teacher的知識，temperature可以較小
-            """
-            # distillation loss (soft target)，注意加上 temperature 的處理
+            
+            # predict->temperature scaling->softmax(make it smooth)
             teacher_soft = tf.nn.softmax(teacher_pred / self.temperature)
             student_soft = tf.nn.softmax(student_pred / self.temperature)
-            distill_loss = self.distillation_loss_fn(teacher_soft, student_soft)
-            """
-            這就是「讓學生一方面學習正確答案，一方面模仿老師的 soft label」
-            temperature > 1 會讓輸出機率分布更「平滑」，強化模仿能力
-            最後 student 模型就學到了一些 teacher 模型的知識
-            """
-
+            distill_loss = self.distillation_loss_fn(teacher_soft, student_soft)#uses soft value of teacher and student predicting
+            
             # 總損失
             total_loss = self.alpha * student_loss + (1 - self.alpha) * distill_loss
+            #total loss = weighted avg of student loss and distillation loss
 
+        #update gradient
         grads = tape.gradient(total_loss, self.student.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.student.trainable_variables))
 
@@ -84,6 +82,7 @@ class Distiller(tf.keras.Model):#
         x, y_true = data
         student_pred = self.student(x, training=False)
         loss = self.student_loss_fn(y_true, student_pred)
+        #similar to train_step but no gradient updating(sure because is in test step)
         self.metric.update_state(y_true, student_pred)
         return {"loss": loss, "accuracy": self.metric.result()}
 
@@ -111,7 +110,7 @@ train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.4.npz')
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']
 
-epoch=40
+epoch=50
 kd_model=fit_model(train_data, train_labels, os.path.join(current_path, 'teacher_model'), epoch)
 print("\n epoch = {} training complete".format(epoch))
 
