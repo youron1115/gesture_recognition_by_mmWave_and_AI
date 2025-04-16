@@ -9,22 +9,24 @@ def student_model(num_classes):
     
     input_shapes = (32, 32, 100, 1)
     
-    model = models.Sequential()        
-    model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), activation='relu'),input_shape=input_shapes))    
-    model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))
-    model.add(layers.Dropout(0.3))
+    model = models.Sequential()  
+          
+    model.add(layers.TimeDistributed(layers.Conv2D(16, (3, 3), activation='relu'),input_shape=input_shapes))    
+    model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3))))
+    #model.add(layers.TimeDistributed(layers.Dropout(0.3)))
     
     model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), activation='relu'),input_shape=input_shapes))    
-    model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))    
-    model.add(layers.Dropout(0.3))
+    model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3)))) 
+    #model.add(layers.TimeDistributed(layers.Dropout(0.3)))   
     
-    model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), activation='relu'),input_shape=input_shapes))    
+    """
+    model.add(layers.TimeDistributed(layers.Conv2D(128, (3, 3), activation='relu'),input_shape=input_shapes))    
     model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))    
-    model.add(layers.Dropout(0.3)) 
+    """
     
     model.add(layers.TimeDistributed(layers.Flatten()))        
 
-    model.add(layers.LSTM(64))   
+    model.add(layers.LSTM(32))   
     model.add(layers.Dense(32, activation='relu'))       
     model.add(layers.Dense(num_classes, activation='softmax'))     
     #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])        
@@ -68,8 +70,8 @@ class Distiller(tf.keras.Model):#
             2.student參數較少時無法學到所有teacher的知識，temperature可以較小
             """
             # distillation loss (soft target)，注意加上 temperature 的處理
-            teacher_soft = tf.nn.sigmoid(teacher_pred / self.temperature)
-            student_soft = tf.nn.sigmoid(student_pred / self.temperature)
+            teacher_soft = tf.nn.softmax(teacher_pred / self.temperature)
+            student_soft = tf.nn.softmax(student_pred / self.temperature)
             distill_loss = self.distillation_loss_fn(teacher_soft, student_soft)
             """
             這就是「讓學生一方面學習正確答案，一方面模仿老師的 soft label」
@@ -101,9 +103,9 @@ def fit_model(data, labels, teacher_model_path, parameter_epoch=10):
     teacher = models.load_model(teacher_model_path)  # 載入教師模型
     teacher.trainable = False  # 凍結權重
     
-    distiller = Distiller(student=student, teacher=teacher, temperature=3, alpha=0.5)
+    distiller = Distiller(student=student, teacher=teacher, temperature=1.25, alpha=0.7)
     distiller.compile(optimizer=tf.keras.optimizers.Adam())#assign using what optimizer
-    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=14, validation_split=0.3)
+    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=int(data.shape[0]/5.0), validation_split=0.3)
     return distiller
 
 def save_model(model, save_path):
@@ -112,6 +114,7 @@ def save_model(model, save_path):
     print("\nModel saved to {} ".format(whole_path))
 
 current_path = os.path.dirname(os.path.abspath(__file__))
+#train_data_path=os.path.join(current_path, 'processed_data', 'train_0.4.npz')
 train_data_path=os.path.join(current_path, 'processed_data', 'train_0.4.npz')
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']

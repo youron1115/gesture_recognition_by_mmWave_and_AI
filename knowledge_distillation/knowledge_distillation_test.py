@@ -11,8 +11,7 @@ def predict_labels(model, data):
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 
-#model_path=os.path.join(current_path,'model',"KD_model_lowdata.h5")
-model_path=os.path.join(current_path,'model',"student_model_logit_lowdata.h5")
+model_path=os.path.join(current_path,'model',"KD_model_lowdata.h5")
 model=models.load_model(model_path)
 
 test_data_path=os.path.join(current_path,'processed_data',"test_0.6.npz")
