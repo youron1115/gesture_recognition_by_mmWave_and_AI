@@ -105,7 +105,6 @@ def save_model(model, save_path):
     print("\nModel saved to {} ".format(whole_path))
 
 current_path = os.path.dirname(os.path.abspath(__file__))
-#train_data_path=os.path.join(current_path, 'processed_data', 'train_0.4.npz')
 train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.4.npz')
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']
