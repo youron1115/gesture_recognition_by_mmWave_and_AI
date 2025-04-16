@@ -3,8 +3,11 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 
-#origin_test_data = os.path.join(os.path.dirname(os.path.abspath(__file__)),  'processed_data', 'test.npz')
-origin_test_data=r"D:\gesture_recognition_by_mmWave_and_AI\processed_data\test.npz"
+current_file = os.path.abspath(__file__)
+parent_dir =os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
+origin_test_data = os.path.join(parent_dir,  'processed_data', 'test.npz')
+#print("Loading data from:", origin_test_data)
+
 record = np.load(origin_test_data)
 data=record['data']
 labels=record['labels']
