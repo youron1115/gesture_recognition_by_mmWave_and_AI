@@ -13,24 +13,15 @@ def student_model(num_classes):
           
     model.add(layers.TimeDistributed(layers.Conv2D(16, (3, 3), activation='relu'),input_shape=input_shapes))    
     model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3))))
-    #model.add(layers.TimeDistributed(layers.Dropout(0.3)))
     
     model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), activation='relu'),input_shape=input_shapes))    
     model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3)))) 
-    #model.add(layers.TimeDistributed(layers.Dropout(0.3)))   
-    
-    """
-    model.add(layers.TimeDistributed(layers.Conv2D(128, (3, 3), activation='relu'),input_shape=input_shapes))    
-    model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))    
-    """
     
     model.add(layers.TimeDistributed(layers.Flatten()))        
 
     model.add(layers.LSTM(32))   
     model.add(layers.Dense(32, activation='relu'))       
     model.add(layers.Dense(num_classes, activation='softmax'))     
-    #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])        
-    # model.fit(data, labels, epochs=20, batch_size=14, validation_split=0.3, shuffle=True)
 
     #print("\nStudent model summary:")
     #model.summary()
