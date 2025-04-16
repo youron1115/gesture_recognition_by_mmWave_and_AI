@@ -22,6 +22,7 @@ def student_model(num_classes):
     model.add(layers.LSTM(32))   
     model.add(layers.Dense(32, activation='relu'))       
     model.add(layers.Dense(num_classes, activation='softmax'))     
+    # model.fit(data, labels, epochs=20, batch_size=14, validation_split=0.3, shuffle=True)
 
     #print("\nStudent model summary:")
     #model.summary()
@@ -106,7 +107,7 @@ def save_model(model, save_path):
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 #train_data_path=os.path.join(current_path, 'processed_data', 'train_0.4.npz')
-train_data_path=os.path.join(current_path, 'processed_data', 'train_0.4.npz')
+train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.4.npz')
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']
 

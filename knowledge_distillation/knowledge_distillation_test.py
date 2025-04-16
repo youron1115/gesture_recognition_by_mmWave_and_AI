@@ -14,7 +14,7 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 model_path=os.path.join(current_path,'model',"KD_model_lowdata.h5")
 model=models.load_model(model_path)
 
-test_data_path=os.path.join(current_path,'processed_data',"test_0.6.npz")
+test_data_path=os.path.join(current_path,'processed_data',"KD_test_0.6.npz")
 
 test_data=np.load(test_data_path)['data']
 test_labels=np.load(test_data_path)['labels']
