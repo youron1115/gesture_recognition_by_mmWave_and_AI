@@ -40,7 +40,7 @@ def fit_model(data,labels,model_path):
 
     #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.fit(data, labels, epochs=20, batch_size=14, validation_split=0.3, shuffle=True)
+    model.fit(data, labels, epochs=20, batch_size=int(data.shape[0]/5.0), validation_split=0.3, shuffle=True)
     print("\nTraining complete")
     
     #model.save(os.path.join(model_path, 'gesture_model_RDI_data_2conv_drop.h5'))

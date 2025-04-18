@@ -1,0 +1,60 @@
+import os
+import numpy as np
+import pandas as pd
+import h5py
+
+import tensorflow as tf
+from keras import layers, models
+
+def fit_model(train_data, train_labels, valid_data, valid_labels, model_path):   
+    
+    time_steps = 100
+    height = 32
+    width = 32
+    input_shape = (width, height, time_steps, 1)
+    num_classes= 2  #可設定num_classes 種手勢
+    
+    model = models.Sequential()
+    
+    model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), activation='relu'),input_shape=input_shape))
+    model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3))))
+    model.add(layers.Dropout(0.3))
+    
+    model.add(layers.TimeDistributed(layers.Conv2D(64, (3, 3), activation='relu'),input_shape=input_shape))
+    model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))
+    model.add(layers.Dropout(0.3)) 
+    
+    model.add(layers.TimeDistributed(layers.Conv2D(128, (3, 3), activation='relu')))
+    model.add(layers.TimeDistributed(layers.MaxPooling2D((2, 2))))
+    model.add(layers.Dropout(0.3))
+    
+    model.add(layers.TimeDistributed(layers.Flatten()))
+        
+    model.add(layers.LSTM(64))#64:LSTM units
+    model.add(layers.Dense(32, activation='relu'))
+    
+    model.add(layers.Dense(num_classes, activation='softmax')) 
+
+    #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.fit(train_data, train_labels, validation_data=(valid_data, valid_labels), epochs=130, batch_size=int(train_data.shape[0]/5.0), shuffle=True)
+    print("\nTraining complete")
+    
+    #model.save(os.path.join(model_path, 'gesture_model_RDI_data_2conv_drop.h5'))
+    model.save(os.path.join(model_path, 'gesture_model_RDI_data_augmentation.h5'))
+    print("\nsave complete")
+
+
+current_path = os.path.dirname(os.path.abspath(__file__))
+
+processed_data_path=os.path.join(current_path, "processed_data")
+train_data = np.load(os.path.join(processed_data_path, 'train_aug.npz'))
+train_labels = train_data['labels']
+train_data = train_data['data']
+
+valid_data = np.load(os.path.join(processed_data_path, 'val_aug.npz'))
+valid_labels = valid_data['labels']
+valid_data = valid_data['data']
+
+model_dir =os.path.join(current_path, "model")
+fit_model(train_data, train_labels, valid_data, valid_labels, model_dir)
