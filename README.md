@@ -1,5 +1,5 @@
 # Gesture recognition program and knowledge distillation
-This program uses mmWave radar to collect RDI map and CNN+LSTM structure to recognize inputed data is which gesture.
+This program uses mmWave radar to collect RDI map and CNN+LSTM structure to recognize inputed data is which gesture.(codes that end with _augmentation.py apply data augmentation to the original data and remove data normalization which may cause data leakage)
 ## 1. Data collection
 I recorded two gestures: "pipi" and "swipe left" using mmWave radar.
 ## 2. Data preprocessing
