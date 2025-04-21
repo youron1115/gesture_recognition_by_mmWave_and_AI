@@ -26,7 +26,7 @@ def load_data(data_dir):
 
 def preprocess_label(labels):
     
-    label_dict={'pipi': 0, 'left': 1}  
+    label_dict={'background':0, 'pipi': 1, 'left': 2}  
     
     for i in range(len(labels)):
         labels[i]=label_dict[labels[i]]

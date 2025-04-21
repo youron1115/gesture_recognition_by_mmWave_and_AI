@@ -13,7 +13,7 @@ def fit_model(data,labels,model_path):
     height = 32
     width = 32
     input_shape = (width, height, time_steps, 1)
-    num_classes= 2  #可設定num_classes 種手勢
+    num_classes= 3  #可設定num_classes 種手勢
     
     model = models.Sequential()
     
