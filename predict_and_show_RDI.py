@@ -4,7 +4,6 @@ import os
 
 from keras import models
 
-
 def load_and_predict(model, data):
 
      predictions = model.predict(data)

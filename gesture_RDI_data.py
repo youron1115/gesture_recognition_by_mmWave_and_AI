@@ -1,6 +1,5 @@
 import os
 import numpy as np
-
 import h5py
 
 from sklearn.model_selection import train_test_split
@@ -26,37 +25,67 @@ def load_data(data_dir):
 
 def preprocess_label(labels):
     
-    label_dict={'background':0, 'pipi': 1, 'left': 2}  
+    label_dict={'background':0, 'pipi': 1, 'left': 2}   
     
     for i in range(len(labels)):
         labels[i]=label_dict[labels[i]]
      
     return labels
 
-def normalize_min_max(data):
+def split_data(data, labels, test_size=0.3, validation_size=0.3):
     
-    max_value = 0
-    if np.max(data) > 0:
-        max_value=np.max(data) 
-    else :
-        max_value=1.0
-    
-    return data / max_value
-
-def split_data_into_files(data, labels, output_dir,test_size=0.3):
-    # 確保輸出目錄存在
-    os.makedirs(output_dir, exist_ok=True)
-
     data_train, data_test, labels_train, labels_test = train_test_split(data, labels, test_size=test_size, random_state=42)
+    data_train, data_val, labels_train, labels_val = train_test_split(data_train, labels_train, test_size=validation_size, random_state=42) 
     
-    #print("data_train:",len(data_train))
-    #print("data_test:",len(data_test))
+    print("\nData split successfully!")
     
-    np.savez_compressed(os.path.join(output_dir, 'train.npz'), data=data_train, labels=labels_train)
-    np.savez_compressed(os.path.join(output_dir, 'test.npz'), data=data_test, labels=labels_test)
+    return data_train, labels_train, data_val, labels_val, data_test, labels_test
 
-    print("\nData split and saved successfully!")
+def data_augmentation(data, labels):
+    print("\nData augmentation started!")
+    # just augmentiing training but not validating and test
+    augmented_data = []
+    augmented_labels = []
+
+    batch_size=int(data.shape[0]/10.0)
+    num_samples = len(data)
     
+    #Add Gaussian noise to the data
+    for i in range(0,num_samples,batch_size):
+        
+        batch_data=data[i:i+batch_size]
+        batch_labels=labels[i:i+batch_size]
+        
+        noise = np.random.normal(0, 0.1, batch_data.shape)
+        noisy_image = batch_data + noise
+        
+        for j in range(len(batch_data)):
+            augmented_data.append(noisy_image[j])
+            augmented_labels.append(batch_labels[j])
+
+    print("\nData augmentation completed! returning...")
+    return np.array(augmented_data), np.array(augmented_labels)
+
+def normalize_min_max(data,max_val=-999,min_val=999):
+    
+    if max_val == -999 or min_val == 999:
+        #calculating max and min value in def (for train data)
+        max_val = np.max(data)
+        min_val = np.min(data)  
+        return data / max_val, max_val, min_val
+    else:
+        #normalizing test data with train data max and min value
+        return (data - min_val) / (max_val - min_val)
+
+def save_data(train_data, train_labels, val_data, val_labels, test_data, test_labels, output_dir):
+    
+    os.makedirs(output_dir, exist_ok=True)
+    np.savez_compressed(os.path.join(output_dir, 'train.npz'), data=train_data, labels=train_labels)
+    np.savez_compressed(os.path.join(output_dir, 'val.npz'), data=val_data, labels=val_labels)
+    np.savez_compressed(os.path.join(output_dir, 'test.npz'), data=test_data, labels=test_labels)
+    
+    print("\nData saved successfully!")
+
 current_path = os.path.dirname(os.path.abspath(__file__))
 load_data_path = os.path.join(current_path, 'recorder')
 data, labels = load_data(load_data_path)
@@ -64,10 +93,20 @@ data, labels = load_data(load_data_path)
 labels = preprocess_label(labels)
 #print("labels:",labels)
 
-data=normalize_min_max(data)
-
 data = np.array(data)
 labels = np.array(labels)
 
-process_data_path = os.path.join(current_path, 'processed_data')
-split_data_into_files(data, labels, process_data_path)
+#split
+data_train_set, labels_train_set, data_val_set, labels_val_set, data_test_set, labels_test_set = split_data(data, labels, )#test_size=0.3, validation_size=0.3
+
+#train aug
+#data_train_set, labels_train_set = data_augmentation(data_train_set, labels_train_set)
+"""
+#data normalization
+data_train_set, max_value, min_value = normalize_min_max(data_train_set)
+data_val_set = normalize_min_max(data_val_set,max_value,min_value)
+data_test_set = normalize_min_max(data_test_set,max_value,min_value)
+"""
+
+#save
+save_data(data_train_set, labels_train_set, data_val_set, labels_val_set, data_test_set, labels_test_set, os.path.join(current_path, 'processed_data'))

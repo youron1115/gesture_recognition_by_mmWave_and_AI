@@ -1,4 +1,5 @@
-origin_model_summary.png
 distillation_model_summary.png
-model_summary_no_normalize_1.png
-model_summary_no_normalize_2.png
+original_model_summary_1.png
+original_model_summary_2.png
+diff_ep_loop.ipynb
+original_model_diff_ep_acc.png
