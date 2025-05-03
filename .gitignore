@@ -1,5 +1,9 @@
-distillation_model_summary.png
-original_model_summary_1.png
-original_model_summary_2.png
-diff_ep_loop.ipynb
-original_model_diff_ep_acc.png
+diff_ep_loop_hard_label.ipynb
+diff_ep_loop_soft_label.ipynb
+
+
+knowledge_distillation/GAN_models
+knowledge_distillation/generated_data
+knowledge_distillation/GAN_model.py
+knowledge_distillation/GAN_generate_data.py
+knowledge_distillation/evaluate_GAN_data.py

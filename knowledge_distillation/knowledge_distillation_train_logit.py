@@ -19,8 +19,8 @@ def student_model(num_classes):
     
     model.add(layers.TimeDistributed(layers.Flatten()))        
 
-    model.add(layers.LSTM(32))   
-    model.add(layers.Dense(32, activation='relu'))       
+    model.add(layers.LSTM(16))   
+    model.add(layers.Dense(16, activation='relu'))       
     model.add(layers.Dense(num_classes, activation='softmax'))     
     # model.fit(data, labels, epochs=20, batch_size=14, validation_split=0.3, shuffle=True)
 
@@ -86,17 +86,17 @@ class Distiller(tf.keras.Model):#
         self.metric.update_state(y_true, student_pred)
         return {"loss": loss, "accuracy": self.metric.result()}
 
-def fit_model(data, labels, teacher_model_path, parameter_epoch=10):
+def fit_model(train_data, train_labels, valid_data,valid_labels, teacher_model_path, parameter_epoch=30):
     
-    student = student_model(2)  # 使用自定義的 student 架構
+    student = student_model(3)  # 使用自定義的 student 架構
 
     teacher_model_path=os.path.join(teacher_model_path, 'gesture_model_RDI_data.h5')
     teacher = models.load_model(teacher_model_path)  # 載入教師模型
     teacher.trainable = False  # 凍結權重
     
-    distiller = Distiller(student=student, teacher=teacher, temperature=1.25, alpha=0.7)
+    distiller = Distiller(student=student, teacher=teacher)#, temperature=1.25, alpha=0.7
     distiller.compile(optimizer=tf.keras.optimizers.Adam())#assign using what optimizer
-    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=int(data.shape[0]/5.0), validation_split=0.3)
+    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=int(train_data.shape[0]/5.0), validation_data=(valid_data, valid_labels), shuffle=True)
     return distiller
 
 def save_model(model, save_path):
@@ -105,15 +105,21 @@ def save_model(model, save_path):
     print("\nModel saved to {} ".format(whole_path))
 
 current_path = os.path.dirname(os.path.abspath(__file__))
-train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.4.npz')
+train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.5.npz')
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']
 
-epoch=50
-kd_model=fit_model(train_data, train_labels, os.path.join(current_path, 'teacher_model'), epoch)
+parent_path = os.path.dirname(current_path)
+val_data_path=os.path.join(parent_path, 'processed_data', 'val.npz')
+val_data=np.load(val_data_path)['data']
+val_labels=np.load(val_data_path)['labels']
+
+epoch=70
+kd_model=fit_model(train_data, train_labels, val_data, val_labels, os.path.join(current_path, 'teacher_model'), epoch)
 print("\n epoch = {} training complete".format(epoch))
 
 save_path=os.path.join(os.path.dirname(__file__), 'model')
+print("Saving model to:", save_path)
 save_model(kd_model, save_path)
 
 
