@@ -23,6 +23,7 @@ def load_data(data_dir):
         
     return data, labels
 
+    
 def preprocess_label(labels):
     
     label_dict={'background':0, 'pipi': 1, 'left': 2}   
@@ -46,6 +47,9 @@ def data_augmentation(data, labels):
     # just augmentiing training but not validating and test
     augmented_data = []
     augmented_labels = []
+    
+    augmented_data.append(data[0])
+    augmented_labels.append(labels[0])
 
     batch_size=int(data.shape[0]/10.0)
     num_samples = len(data)

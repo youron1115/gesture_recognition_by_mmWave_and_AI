@@ -1,10 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
-import h5py
 
-import tensorflow as tf
-from keras import layers, models
+from keras import layers, models, losses
 
 def fit_model(train_data, train_labels, valid_data, valid_labels, model_path):   
     
@@ -33,8 +31,12 @@ def fit_model(train_data, train_labels, valid_data, valid_labels, model_path):
     model.add(layers.LSTM(64))#64:LSTM units
     model.add(layers.Dense(32, activation='relu'))
     
-    model.add(layers.Dense(num_classes, activation='softmax')) 
+    #直接輸出logit再做處理
+    #model.add(layers.Dense(num_classes))
+    #model.compile(optimizer='adam', loss=losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
 
+    model.add(layers.Dense(num_classes, activation='softmax'))
+    
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     model.fit(train_data, train_labels, validation_data=(valid_data, valid_labels), epochs=60, batch_size=int(train_data.shape[0]/5.0), shuffle=True)
     print("\nTraining complete")
