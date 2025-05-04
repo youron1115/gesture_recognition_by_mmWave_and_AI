@@ -43,6 +43,6 @@ predicted_value = np.array(predicted_value)
 output['Predicted Probability Value'] = predicted_value.tolist()
 print("Predicted Probability Value")
 
-output_path=os.path.join(current_path, "test_output/predicted_labels_RDI_try.csv")
+output_path=os.path.join(current_path, "test_output/predicted_labels_RDI.csv")
 output.to_csv(output_path, index=False)
 print("Predicted {} labels saved to {} CSV file.".format(train_or_test_data,output_path))
