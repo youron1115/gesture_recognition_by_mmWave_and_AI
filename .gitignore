@@ -1,9 +1,13 @@
 diff_ep_loop_hard_label.ipynb
 diff_ep_loop_soft_label.ipynb
 
-
 knowledge_distillation/GAN_models
 knowledge_distillation/generated_data
 knowledge_distillation/GAN_model.py
 knowledge_distillation/GAN_generate_data.py
 knowledge_distillation/evaluate_GAN_data.py
+
+model_train_RDI_outputLogit.py
+model/gesture_model_RDI_data_outputLogit.h5
+predict_and_show_RDI_outputLogit.py
+test_output/predicted_labels_RDI_output_Logit.csv
