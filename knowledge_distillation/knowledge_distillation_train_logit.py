@@ -117,7 +117,7 @@ val_data_path=os.path.join(parent_path, 'processed_data', 'val.npz')
 val_data=np.load(val_data_path)['data']
 val_labels=np.load(val_data_path)['labels']
 
-epoch=100
+epoch=130
 kd_model=fit_model(train_data, train_labels, val_data, val_labels, os.path.join(current_path, 'teacher_model'), epoch)
 print("\n epoch = {} training complete".format(epoch))
 
