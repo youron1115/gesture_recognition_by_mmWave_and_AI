@@ -1,8 +1,10 @@
 import os
 import numpy as np
-import tensorflow as tf
 
-from keras import layers, models, losses
+import tensorflow as tf
+import keras
+
+from keras import layers, models, losses, optimizers
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 
 def student_model(num_classes):
@@ -21,8 +23,7 @@ def student_model(num_classes):
 
     model.add(layers.LSTM(16))   
     model.add(layers.Dense(16, activation='relu'))       
-    model.add(layers.Dense(num_classes, activation='softmax'))     
-    # model.fit(data, labels, epochs=20, batch_size=14, validation_split=0.3, shuffle=True)
+    model.add(layers.Dense(num_classes ))#, activation='softmax'   
 
     #print("\nStudent model summary:")
     #model.summary()
@@ -40,11 +41,11 @@ class Distiller(tf.keras.Model):#
         """
         self.alpha = alpha
         
-        self.student_loss_fn = losses.SparseCategoricalCrossentropy()#evaluating student loss by common loss function
+        self.student_loss_fn = losses.SparseCategoricalCrossentropy(from_logits=True)##evaluating student loss by common loss function
         self.distillation_loss_fn = losses.KLDivergence()#evaluating distillation loss by KLDivergence(相對熵)
-        self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name="sparse categorical accuracy")
+        self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name="distiller sparse categorical accuracy")
 
-    def compile(self, optimizer):
+    def compile(self, optimizer=keras.optimizers.Adam()):
         super(Distiller, self).compile()
         self.optimizer = optimizer
 
@@ -63,6 +64,7 @@ class Distiller(tf.keras.Model):#
 
             
             # predict->temperature scaling->softmax(make it smooth)
+            
             teacher_soft = tf.nn.softmax(teacher_pred / self.temperature)
             student_soft = tf.nn.softmax(student_pred / self.temperature)
             distill_loss = self.distillation_loss_fn(teacher_soft, student_soft)#uses soft value of teacher and student predicting
@@ -76,7 +78,7 @@ class Distiller(tf.keras.Model):#
         self.optimizer.apply_gradients(zip(grads, self.student.trainable_variables))
 
         self.metric.update_state(y_true, student_pred)
-        return {"loss": total_loss, "accuracy": self.metric.result()}
+        return {"train step loss": total_loss, "train step accuracy": self.metric.result()}
 
     def test_step(self, data):
         x, y_true = data
@@ -84,18 +86,19 @@ class Distiller(tf.keras.Model):#
         loss = self.student_loss_fn(y_true, student_pred)
         #similar to train_step but no gradient updating(sure because is in test step)
         self.metric.update_state(y_true, student_pred)
-        return {"loss": loss, "accuracy": self.metric.result()}
+        return {"test step loss": loss, "test step accuracy": self.metric.result()}
 
 def fit_model(train_data, train_labels, valid_data,valid_labels, teacher_model_path, parameter_epoch=30):
     
     student = student_model(3)  # 使用自定義的 student 架構
 
-    teacher_model_path=os.path.join(teacher_model_path, 'gesture_model_RDI_data.h5')
+    teacher_model_path=os.path.join(teacher_model_path, 'gesture_model_RDI_data_KD_teacher.h5')#
+    print("Loading teacher model from: ", teacher_model_path)
     teacher = models.load_model(teacher_model_path)  # 載入教師模型
     teacher.trainable = False  # 凍結權重
     
     distiller = Distiller(student=student, teacher=teacher)#, temperature=1.25, alpha=0.7
-    distiller.compile(optimizer=tf.keras.optimizers.Adam())#assign using what optimizer
+    distiller.compile(optimizer=optimizers.Adam())#assign using what optimizer
     distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=int(train_data.shape[0]/5.0), validation_data=(valid_data, valid_labels), shuffle=True)
     return distiller
 
@@ -114,12 +117,12 @@ val_data_path=os.path.join(parent_path, 'processed_data', 'val.npz')
 val_data=np.load(val_data_path)['data']
 val_labels=np.load(val_data_path)['labels']
 
-epoch=70
+epoch=100
 kd_model=fit_model(train_data, train_labels, val_data, val_labels, os.path.join(current_path, 'teacher_model'), epoch)
 print("\n epoch = {} training complete".format(epoch))
 
 save_path=os.path.join(os.path.dirname(__file__), 'model')
-print("Saving model to:", save_path)
+#print("Saving model to:", save_path)
 save_model(kd_model, save_path)
 
 
