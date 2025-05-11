@@ -45,7 +45,7 @@ class Distiller(tf.keras.Model):#
         self.distillation_loss_fn = losses.KLDivergence()#evaluating distillation loss by KLDivergence(相對熵)
         self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name="distiller sparse categorical accuracy")
 
-    def compile(self, optimizer=keras.optimizers.Adam()):
+    def compile(self, optimizer=optimizers.Adam()):
         super(Distiller, self).compile()
         self.optimizer = optimizer
 
@@ -98,8 +98,8 @@ def fit_model(train_data, train_labels, valid_data,valid_labels, teacher_model_p
     teacher.trainable = False  # 凍結權重
     
     distiller = Distiller(student=student, teacher=teacher)#, temperature=1.25, alpha=0.7
-    distiller.compile(optimizer=optimizers.Adam())#assign using what optimizer
-    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=int(train_data.shape[0]/5.0), validation_data=(valid_data, valid_labels), shuffle=True)
+    distiller.compile()
+    distiller.fit(x=train_data, y=train_labels, epochs=parameter_epoch, batch_size=14, validation_data=(valid_data, valid_labels), shuffle=True)
     return distiller
 
 def save_model(model, save_path):
@@ -109,15 +109,17 @@ def save_model(model, save_path):
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 train_data_path=os.path.join(current_path, 'processed_data', 'KD_train_0.5.npz')
+print("Loading training data from: ", train_data_path)
 train_data=np.load(train_data_path)['data']
 train_labels=np.load(train_data_path)['labels']
 
 parent_path = os.path.dirname(current_path)
 val_data_path=os.path.join(parent_path, 'processed_data', 'val.npz')
+print("Loading validation data from: ", val_data_path)
 val_data=np.load(val_data_path)['data']
 val_labels=np.load(val_data_path)['labels']
 
-epoch=130
+epoch=110
 kd_model=fit_model(train_data, train_labels, val_data, val_labels, os.path.join(current_path, 'teacher_model'), epoch)
 print("\n epoch = {} training complete".format(epoch))
 

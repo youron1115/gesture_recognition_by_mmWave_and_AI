@@ -44,5 +44,7 @@ output['Predicted Probability Value'] = predicted_value.tolist()
 print("Predicted Probability Value")
 
 output_path=os.path.join(current_path, "test_output/predicted_labels_RDI.csv")
+if not os.path.exists(os.path.dirname(output_path)):#if the csv not exists, terminal will raise an error
+    os.makedirs(os.path.dirname(output_path))
 output.to_csv(output_path, index=False)
 print("Predicted {} labels saved to {} CSV file.".format(train_or_test_data,output_path))
