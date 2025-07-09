@@ -14,7 +14,7 @@ def fit_model(train_data, train_labels, valid_data, valid_labels, model_path):
     
     model = models.Sequential()
     
-    #timedistributed is to reamin the time structure of the input data
+    #timedistributed is to remain the time structure of the input data
     model.add(layers.TimeDistributed(layers.Conv2D(32, (3, 3), padding='same', activation='relu'),input_shape=input_shape))
     model.add(layers.TimeDistributed(layers.MaxPooling2D((3, 3))))
     #model.add(layers.Dropout(0.3))
